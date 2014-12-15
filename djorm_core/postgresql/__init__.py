@@ -9,6 +9,7 @@ import django
 
 try:
     import psycopg2
+    assert psycopg2
 except ImportError:
     print("psycopg2 import error, djorm_core.postgres modulue "
           "is only compatible with postgresql_psycopg2 backend")
@@ -78,8 +79,10 @@ def patch_cursor_wrapper_django_lt_1_6():
             cursor = self.cursor
 
             name = uuid.uuid4().hex
-            self.cursor = connection.cursor(name="cur{0}".format(name),
-                    withhold=getattr(_local_data, 'withhold', False))
+            kw = {}
+            if False: # TODO: introspect version to see if `withold` is available
+                kw['withhold'] = getattr(_local_data, 'withhold', False)
+            self.cursor = connection.cursor(name="cur{0}".format(name), **kw)
             self.cursor.tzinfo_factory = cursor.tzinfo_factory
 
             if getattr(_local_data, 'itersize', None):
